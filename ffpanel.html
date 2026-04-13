@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FF Advanced Sensi Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Teko:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        /* CSS Reset & Variables */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #ff8c00;
+            --secondary: #ffeb3b;
+            --bg: #0d0d12;
+            --panel: #1a1a24;
+            --text: #ffffff;
+            --danger: #ff2a2a;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Teko', sans-serif;
+            overflow-x: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-image: radial-gradient(circle at 50% 0%, #2b1700 0%, #0d0d12 60%);
+        }
+
+        /* Anti-Inspect Security Overlay */
+        #security-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #000;
+            z-index: 9999;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: var(--danger);
+        }
+        #security-overlay h1 { font-family: 'Russo One'; font-size: 3rem; }
+        #security-overlay p { font-size: 1.5rem; }
+
+        /* Main Container */
+        .container {
+            background: var(--panel);
+            width: 95%;
+            max-width: 450px;
+            border-radius: 15px;
+            border: 2px solid #333;
+            box-shadow: 0 0 30px rgba(255, 140, 0, 0.2);
+            padding: 25px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px; right: -2px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+
+        .title h1 {
+            font-family: 'Russo One', sans-serif;
+            font-size: 2rem;
+            text-transform: uppercase;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+
+        .title p { font-size: 1.2rem; color: #888; margin-bottom: 20px; }
+
+        /* Initial Button */
+        .btn-start {
+            background: linear-gradient(45deg, var(--primary), #e65100);
+            color: #fff;
+            font-family: 'Russo One', sans-serif;
+            font-size: 1.2rem;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            text-transform: uppercase;
+            box-shadow: 0 5px 15px rgba(255, 140, 0, 0.4);
+            transition: all 0.3s;
+        }
+        .btn-start:active { transform: scale(0.95); }
+
+        /* Scanning Animation Sequence */
+        .scanner-box {
+            display: none;
+            margin-top: 20px;
+        }
+        .radar {
+            width: 80px; height: 80px;
+            border: 3px solid var(--primary);
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            position: relative;
+            overflow: hidden;
+        }
+        .radar::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 40px; height: 40px;
+            background: rgba(255, 140, 0, 0.5);
+            transform-origin: top left;
+            animation: scan 1s linear infinite;
+        }
+        @keyframes scan { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .scan-text { font-size: 1.5rem; color: var(--secondary); letter-spacing: 1px; }
+
+        /* Results Screen */
+        .results-box {
+            display: none;
+            text-align: left;
+            margin-top: 20px;
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .device-info {
+            background: rgba(0,0,0,0.5);
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 3px solid var(--secondary);
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+        .device-info span { color: var(--primary); font-family: 'Russo One'; }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,0.05);
+            padding: 10px 15px;
+            margin-bottom: 8px;
+            border-radius: 5px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .stat-name { font-size: 1.4rem; font-weight: 600; letter-spacing: 1px; }
+        .stat-val { font-family: 'Russo One'; font-size: 1.2rem; color: var(--secondary); }
+
+        .warning {
+            background: rgba(255, 42, 42, 0.1);
+            border: 1px solid var(--danger);
+            color: #ff8a8a;
+            padding: 10px;
+            font-size: 1.1rem;
+            line-height: 1.2;
+            border-radius: 5px;
+            margin: 15px 0;
+            text-align: center;
+        }
+
+        .telegram-btn {
+            display: block;
+            background: linear-gradient(45deg, #0088cc, #005f8e);
+            color: #fff;
+            text-decoration: none;
+            font-family: 'Russo One', sans-serif;
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            box-shadow: 0 5px 15px rgba(0, 136, 204, 0.4);
+            transition: 0.3s;
+        }
+        .telegram-btn:active { transform: scale(0.95); }
+
+    </style>
+</head>
+<body>
+
+    <!-- Anti Inspect Overlay -->
+    <div id="security-overlay">
+        <h1>ACCESS DENIED</h1>
+        <p>Script Viewer Not Allowed.</p>
+        <p>System violation recorded.</p>
+    </div>
+
+    <!-- Main App -->
+    <div class="container" id="main-app">
+        <div class="title">
+            <h1>Perfect Sensi Gen</h1>
+            <p>AI Device Optimization</p>
+        </div>
+
+        <button class="btn-start" id="startBtn" onclick="startScan()">Check Device & Get Sensi</button>
+
+        <!-- Loading Sequence -->
+        <div class="scanner-box" id="scanner">
+            <div class="radar"></div>
+            <div class="scan-text" id="scanText">Initializing...</div>
+        </div>
+
+        <!-- Results Output -->
+        <div class="results-box" id="results">
+            <div class="device-info" id="deviceDisplay">
+                Model: <span id="dModel">Loading...</span><br>
+                Screen Res: <span id="dRes">Loading...</span>
+            </div>
+
+            <div class="stat-row"><span class="stat-name">General</span><span class="stat-val" id="valGen">--</span></div>
+            <div class="stat-row"><span class="stat-name">Red Dot</span><span class="stat-val" id="valRed">--</span></div>
+            <div class="stat-row"><span class="stat-name">2x Scope</span><span class="stat-val" id="val2x">--</span></div>
+            <div class="stat-row"><span class="stat-name">4x Scope</span><span class="stat-val" id="val4x">--</span></div>
+            <div class="stat-row"><span class="stat-name">Sniper Scope</span><span class="stat-val" id="valSnip">--</span></div>
+            <div class="stat-row"><span class="stat-name">Target DPI</span><span class="stat-val" id="valDpi">--</span></div>
+            <div class="stat-row"><span class="stat-name">Aim Mode</span><span class="stat-val" id="valMode">--</span></div>
+
+            <div class="warning">
+                ⚠️ WARNING: This sensi is made based on your mobile's current hardware status. It may need to be changed in the future based on your gameplay use.
+            </div>
+
+            <a href="https://t.me/panelxa" target="_blank" class="telegram-btn">Join Telegram t.me/panelxa</a>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. ANTI-INSPECT & SECURITY SYSTEM
+        // ==========================================
+        function triggerSecurity() {
+            document.getElementById('main-app').style.display = 'none';
+            document.getElementById('security-overlay').style.display = 'flex';
+        }
+
+        // Disable Right Click
+        document.addEventListener('contextmenu', e => e.preventDefault());
+
+        // Disable Keyboard Shortcuts
+        document.onkeydown = function(e) {
+            if(e.keyCode == 123) { triggerSecurity(); return false; } // F12
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) { triggerSecurity(); return false; } // Ctrl+Shift+I
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) { triggerSecurity(); return false; } // Ctrl+Shift+C
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) { triggerSecurity(); return false; } // Ctrl+Shift+J
+            if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) { triggerSecurity(); return false; } // Ctrl+U
+        };
+
+        // Devtools open detection via window resize
+        let lastHeight = window.innerHeight;
+        let lastWidth = window.innerWidth;
+        setInterval(() => {
+            const threshold = 160;
+            if (window.outerWidth - window.innerWidth > threshold || window.outerHeight - window.innerHeight > threshold) {
+                triggerSecurity();
+            }
+        }, 1000);
+
+
+        // ==========================================
+        // 2. DEVICE INFO PARSER
+        // ==========================================
+        function getDeviceInfo() {
+            const ua = navigator.userAgent;
+            let device = "Unknown Device";
+            
+            if (/android/i.test(ua)) {
+                const match = ua.match(/Android.*?; (.*?) Build/);
+                device = match ? match[1] : "Android Device";
+            } else if (/iPad|iPhone|iPod/.test(ua)) {
+                device = "Apple iOS Device";
+            }
+
+            return {
+                model: device,
+                resolution: `${window.screen.width}x${window.screen.height}`,
+                fingerprint: btoa(device + window.screen.width + window.screen.height) // Unique ID for LocalStorage Database
+            };
+        }
+
+
+        // ==========================================
+        // 3. SENSITIVITY GENERATOR LOGIC
+        // ==========================================
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function generateSensiData() {
+            // Logic based exactly on requested parameters
+            return {
+                general: getRandomInt(150, 200),
+                redDot: getRandomInt(100, 200),
+                scope2x: getRandomInt(100, 200),
+                scope4x: getRandomInt(70, 200),
+                sniper: getRandomInt(195, 200), // Mostly 200
+                dpi: getRandomInt(350, 500),
+                mode: Math.random() > 0.5 ? "HIGH" : "DEFAULT"
+            };
+        }
+
+
+        // ==========================================
+        // 4. UI ANIMATION & DATABASE(LOCAL) HANDLING
+        // ==========================================
+        const delay = ms => new Promise(res => setTimeout(res, ms));
+
+        async function startScan() {
+            // Hide Start button, show scanner
+            document.getElementById('startBtn').style.display = 'none';
+            const scanner = document.getElementById('scanner');
+            const scanText = document.getElementById('scanText');
+            scanner.style.display = 'block';
+
+            // Animation sequence
+            scanText.innerText = "Extracting OS Data...";
+            await delay(1000);
+            scanText.innerText = "Analyzing Touch Sampling...";
+            await delay(1200);
+            scanText.innerText = "Calculating Perfect DPI...";
+            await delay(1200);
+            scanText.innerText = "Generating Sensi...";
+            await delay(800);
+
+            // Logic Execution
+            processResults();
+        }
+
+        function processResults() {
+            const deviceData = getDeviceInfo();
+            let sensiData;
+
+            // Check pseudo-database (LocalStorage)
+            const savedData = localStorage.getItem('sensi_db_' + deviceData.fingerprint);
+
+            if (savedData) {
+                // User already searched, show saved data
+                sensiData = JSON.parse(savedData);
+                console.log("Loaded from database.");
+            } else {
+                // New device, generate and save
+                sensiData = generateSensiData();
+                localStorage.setItem('sensi_db_' + deviceData.fingerprint, JSON.stringify(sensiData));
+            }
+
+            // Bind to UI
+            document.getElementById('dModel').innerText = deviceData.model;
+            document.getElementById('dRes').innerText = deviceData.resolution;
+            
+            document.getElementById('valGen').innerText = sensiData.general;
+            document.getElementById('valRed').innerText = sensiData.redDot;
+            document.getElementById('val2x').innerText = sensiData.scope2x;
+            document.getElementById('val4x').innerText = sensiData.scope4x;
+            document.getElementById('valSnip').innerText = sensiData.sniper;
+            document.getElementById('valDpi').innerText = sensiData.dpi;
+            document.getElementById('valMode').innerText = sensiData.mode;
+
+            // Switch UI
+            document.getElementById('scanner').style.display = 'none';
+            document.getElementById('results').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
